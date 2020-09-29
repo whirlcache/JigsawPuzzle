@@ -1,2 +1,9 @@
-# JigsawPuzzle
-Jigsaw Puzzle Game
+# 拼图游戏
+
+一个练习Demo，还未完成。
+
+当前实现的内容有
+
+1. 加载图片
+2. 难度选择
+3. 点击移动图片
