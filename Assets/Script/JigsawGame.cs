@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 
 public enum LevelMap {
-    Simple = 3,
+    Easy = 3,
     Moderate = 4,
     Hard = 5
 }
@@ -16,6 +16,8 @@ public class JigsawGame : MonoBehaviour
     public LevelMap level2;
 
     ArrayList tilesList = new ArrayList();
+
+    Hashtable boardMap = new Hashtable();
 
     ArrayList posList = new ArrayList();
 
@@ -37,6 +39,7 @@ public class JigsawGame : MonoBehaviour
         TilePrefab = GameObject.Find("SpriteNode/TilePrefab");
 
         tilesList.Clear();
+        boardMap.Clear();
         int level = (int)level2;
         byte[] imageBytes = File.ReadAllBytes(Application.dataPath + "/Res/timg.jpg");
         Texture2D sourceTex = new Texture2D(2, 2);
@@ -49,8 +52,9 @@ public class JigsawGame : MonoBehaviour
         tempBox.size = new Vector3((float)blockW/100, (float)blockH/100, 1f);
         tempBox.center = new Vector3(tempBox.size.x/2, tempBox.size.y/2, 1f);
 
-        if (level2==LevelMap.Simple)
+        if (level2==LevelMap.Easy)
         {
+            // 简单
             LevelDist = 3.0f;
         }
         else if (level2==LevelMap.Moderate)
@@ -91,6 +95,7 @@ public class JigsawGame : MonoBehaviour
             TileVo vo = (TileVo)tilesList[i];
 
             GameObject go = CreateTile(vo);
+            boardMap.Add(pos, vo);//随机后加入盘面记录
             go.transform.localPosition = position;
         }
     }
@@ -126,7 +131,8 @@ public class JigsawGame : MonoBehaviour
     void MoveTile(GameObject tile)
     {
         Vector3 tempBoxCenterPosition = tempTile.transform.localPosition + tempBox.center;
-        Vector3 tileCenterPosition = tile.transform.localPosition + tile.GetComponent<Tile>().Center();
+        Tile tileItem = tile.GetComponent<Tile>();
+        Vector3 tileCenterPosition = tile.transform.localPosition + tileItem.Center();
         float dist = Vector3.Distance(tempBoxCenterPosition, tileCenterPosition);
         if (dist < LevelDist)
         {
@@ -134,6 +140,49 @@ public class JigsawGame : MonoBehaviour
             Vector3 clickPosition = new Vector3(tile.transform.localPosition.x, tile.transform.localPosition.y, 0);
             tile.transform.localPosition = tempTile.transform.localPosition;
             tempTile.transform.localPosition = clickPosition;
+
+            // 交换盘面数据
+            int pos = GetVoFromBoard(tileItem.vo);
+            TileVo tempVo = (TileVo)boardMap[999];
+            boardMap[999] = boardMap[pos];
+            boardMap[pos] = tempVo;
+        }
+    }
+
+    int GetVoFromBoard(TileVo vo)
+    {
+        foreach(DictionaryEntry entry in boardMap)
+        {
+            int key = (int)entry.Key;
+            TileVo tempVo = (TileVo)entry.Value;
+            if (tempVo.id == vo.id)
+            {
+                return key;
+            }
+        }
+        return -1;
+    }
+
+    void CheckFinish()
+    {
+        bool isFinish = true;
+        ICollection keys = boardMap.Keys;
+        foreach(int key in keys)
+        {
+            if (key==999)
+            {
+                continue;
+            }
+            TileVo tempVo = (TileVo)boardMap[key];
+            if (tempVo.id != key)
+            {
+                isFinish = false;
+                break;
+            }
+        }
+        if (isFinish)
+        {
+            // 好了
         }
     }
 
@@ -149,6 +198,7 @@ public class JigsawGame : MonoBehaviour
                 if (hitObj.tag=="Tile")
                 {
                     MoveTile(hitObj);
+                    CheckFinish();
                 }
             }
         }
