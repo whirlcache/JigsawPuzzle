@@ -83,7 +83,28 @@ public class JigsawGame : MonoBehaviour
         }
 
         InitRandomPosition();
+        //保证右上角的图块能放缓冲位置
+        ReplaceTempPos();
         RandomPosition();
+    }
+
+    void ReplaceTempPos()
+    {
+        int level = (int)level2;
+        level -= 1;
+        int tempPosIndex = 0;
+        for (int i=0; i < currRandomPosList.Count; i++)
+        {
+            tempPosIndex = i;
+            int pos = (int)currRandomPosList[i];
+            if (pos==level)
+            {
+                break;
+            }
+        }
+        int posIndex = (int)currRandomPosList[tempPosIndex];
+        currRandomPosList[tempPosIndex] = currRandomPosList[level];
+        currRandomPosList[level] = posIndex;
     }
 
     void RandomPosition()
@@ -155,7 +176,7 @@ public class JigsawGame : MonoBehaviour
         {
             int key = (int)entry.Key;
             TileVo tempVo = (TileVo)entry.Value;
-            if (tempVo.id == vo.id)
+            if (tempVo!=null && tempVo.id == vo.id)
             {
                 return key;
             }
@@ -183,6 +204,7 @@ public class JigsawGame : MonoBehaviour
         if (isFinish)
         {
             // 好了
+            Debug.Log("Finish");
         }
     }
 
